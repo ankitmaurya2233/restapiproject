@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Beautiful Seller Page</title>
+  
+      <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #F0F0F0;
+    }
+
+    h1 {
+      color: #007BFF;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      color: #007BFF;
+      margin-top: 40px;
+      margin-bottom: 10px;
+    }
+
+    div#electronicItems,
+    div#foodItems,
+    div#skincareItems {
+      background-color: #FFFFFF;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    div#electronicItems,
+    div#foodItems,
+    div#skincareItems p {
+      margin: 0;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #007BFF;
+      border-radius: 5px;
+      font-size: 16px;
+      color: #007BFF;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: #FFFFFF;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    hr {
+      margin: 10px 0;
+      border: none;
+      border-top: 1px solid #007BFF;
+    }
+  </style>
+  
+</head>
+<body>
+  <h1>Welcome to the Beautiful Seller Page</h1>
+
+  <h2>Electronic Items</h2>
+  <div id="electronicItems"></div>
+
+  <h2>Food Items</h2>
+  <div id="foodItems"></div>
+
+  <h2>Skincare Items</h2>
+  <div id="skincareItems"></div>
+
+  <h2>Add Product</h2>
+  <input type="text" placeholder="Product Name" id="productName" />
+  <input type="number" placeholder="Selling Price" id="sellingPrice" />
+  <select id="category">
+    <option value="1">Electronic Item</option>
+    <option value="2">Food Item</option>
+    <option value="3">Skincare Item</option>
+  </select>
+  <button onclick="addProduct()">Add Product</button>
+
+  <script>
+    async function addProduct() {
+      const productName = document.getElementById('productName').value;
+      const sellingPrice = document.getElementById('sellingPrice').value;
+      const category = document.getElementById('category').value;
+
+      const productData = {
+        name: productName,
+        price: parseInt(sellingPrice),
+        category: parseInt(category),
+      };
+
+      try {
+        const response = await fetch('https://crudcrud.com/api/16bc36c1775b4a08ba3ed29c8e543057/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(productData),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to add product.');
+        }
+
+        const product = await response.json();
+
+        // Update the UI with the added product
+        displayProduct(product);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function deleteProduct(productId, elementId) {
+      try {
+        const response = await fetch(`https://crudcrud.com/api/16bc36c1775b4a08ba3ed29c8e543057/products/${productId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete product.');
+        }
+
+        // Remove the product element from the UI
+        const element = document.getElementById(elementId);
+        element.remove();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    function displayProduct(product) {
+      const categoryName = getCategoryName(product.category);
+
+      const productElement = document.createElement('div');
+      productElement.id = `product_${product._id}`;
+      productElement.innerHTML = `
+        <p><strong>Product Name:</strong> ${product.name}</p>
+        <p><strong>Selling Price:</strong> $${product.price}</p>
+        <p><strong>Category:</strong> ${categoryName}</p>
+        <button onclick="deleteProduct('${product._id}', 'product_${product._id}')">Delete</button>
+        <hr />
+      `;
+
+      if (product.category === 1) {
+        document.getElementById('electronicItems').appendChild(productElement);
+      } else if (product.category === 2) {
+        document.getElementById('foodItems').appendChild(productElement);
+      } else if (product.category === 3) {
+        document.getElementById('skincareItems').appendChild(productElement);
+      }
+    }
+
+    function getCategoryName(category) {
+      switch (category) {
+        case 1:
+          return 'Electronic Item';
+        case 2:
+          return 'Food Item';
+        case 3:
+          return 'Skincare Item';
+        default:
+          return 'Unknown Category';
+      }
+    }
+
+    // Load products from the API when the page loads
+    async function loadProducts() {
+      try {
+        const response = await fetch('https://crudcrud.com/api/16bc36c1775b4a08ba3ed29c8e543057/products');
+        if (!response.ok) {
+          throw new Error('Failed to fetch products.');
+        }
+
+        const products = await response.json();
+        products.forEach((product) => displayProduct(product));
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>
